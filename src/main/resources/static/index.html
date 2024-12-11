@@ -1,0 +1,47 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SSE Chat</title>
+</head>
+<body>
+<div>
+    <input type="text" id="messageInput" placeholder="Type your message">
+    <button onclick="sendMessage()">Send</button>
+</div>
+<ul id="messages"></ul>
+
+<script>
+    // 서버로 메시지 보내기
+    function sendMessage() {
+        const input = document.getElementById('messageInput');
+        const message = input.value;
+
+        fetch('/api/send', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({ content: message }),
+        });
+
+        input.value = '';
+    }
+
+    // SSE 연결
+    const eventSource = new EventSource('/api/connect');
+
+    eventSource.addEventListener('message', function (event) {
+        const messages = document.getElementById('messages');
+        const newMessage = document.createElement('li');
+        newMessage.textContent = event.data;
+        messages.appendChild(newMessage);
+    });
+
+    eventSource.onerror = function () {
+        console.error('SSE connection failed.');
+    };
+</script>
+</body>
+</html>
